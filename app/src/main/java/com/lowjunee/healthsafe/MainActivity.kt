@@ -14,8 +14,9 @@ import com.lowjunee.healthsafe.ui.screen.HomeScreen
 import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
 import androidx.compose.ui.Modifier
 import com.google.firebase.FirebaseApp
-import com.lowjunee.healthsafe.model.samplePastVisitsList
 import com.lowjunee.healthsafe.ui.screen.PastVisitsScreen
+import com.lowjunee.healthsafe.data.FirestoreHelper
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +24,7 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
+        FirestoreHelper().addTestPastVisit()
 
         setContent {
             HealthSafeTheme {
@@ -78,7 +80,6 @@ fun HealthSafeApp() {
                             modifier = Modifier.padding(paddingValues)
                         )
                         "past_visits" -> PastVisitsScreen(
-                            pastVisits = samplePastVisitsList,
                             onBackClick = {
                                 selectedScreen = "home"
                             },

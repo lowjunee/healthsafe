@@ -9,35 +9,38 @@ import com.lowjunee.healthsafe.model.User
 class FirestoreHelper {
     private val db = FirebaseFirestore.getInstance()
 
-    // Add or update a user
-    fun addUser(userId: String, user: User, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        db.collection("users").document(userId)
-            .set(user)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { exception -> onFailure(exception) }
-    }
-
-    // Add a new metric
-    fun addMetric(metric: Metric, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        db.collection("metrics")
-            .add(metric)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onFailure(e) }
-    }
-
-    // Add a new medication
-    fun addMedication(medication: Medication, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        db.collection("medications")
-            .add(medication)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onFailure(e) }
-    }
-
-    // Add a new past visit
-    fun addPastVisit(pastVisit: PastVisit, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    // Fetch Past Visits
+    fun fetchPastVisits(onSuccess: (List<PastVisit>) -> Unit, onFailure: (Exception) -> Unit) {
         db.collection("past_visits")
-            .add(pastVisit)
-            .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onFailure(e) }
+            .get()
+            .addOnSuccessListener { documents ->
+                val visits = documents.mapNotNull { it.toObject(PastVisit::class.java) }
+                onSuccess(visits)
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
+    // Upload Test Data
+    fun addTestPastVisit() {
+        val sampleVisit = PastVisit(
+            userId = "testUser",
+            visitPlace = "Hospital Kuala Lumpur",
+            visitDate = "10 Aug 2024",
+            doctorNotes = "Patient recovering well",
+            dietaryInstructions = "Low salt diet",
+            postOperativeInstructions = "No heavy lifting",
+            medicationNotes = "Continue antibiotics for 7 days"
+        )
+
+        db.collection("past_visits")
+            .add(sampleVisit)
+            .addOnSuccessListener {
+                println("Test data added successfully!")
+            }
+            .addOnFailureListener { e ->
+                println("Failed to add test data: ${e.message}")
+            }
     }
 }

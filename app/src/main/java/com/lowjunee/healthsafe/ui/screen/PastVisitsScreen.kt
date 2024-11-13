@@ -5,9 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,13 +18,30 @@ import androidx.compose.ui.unit.sp
 import com.lowjunee.healthsafe.R
 import com.lowjunee.healthsafe.model.PastVisit
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
+import com.google.firebase.firestore.FirebaseFirestore
+import com.lowjunee.healthsafe.data.FirestoreHelper
 
 @Composable
 fun PastVisitsScreen(
-    pastVisits: List<PastVisit>,
     onBackClick: () -> Unit,
     onAddPastVisit: () -> Unit
 ) {
+    var searchQuery by remember { mutableStateOf("") }
+    var pastVisits by remember { mutableStateOf(listOf<PastVisit>()) }
+
+    // Fetch data from Firestore
+    LaunchedEffect(Unit) {
+        FirestoreHelper().fetchPastVisits(
+            onSuccess = { fetchedVisits ->
+                pastVisits = fetchedVisits
+            },
+            onFailure = { e ->
+                println("Failed to fetch past visits: ${e.message}")
+            }
+        )
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,14 +59,14 @@ fun PastVisitsScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_back),
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = PrimaryColor
                 )
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = "HealthSafe",
+                text = "Past Visits",
                 color = PrimaryColor,
                 fontSize = 28.sp,
                 modifier = Modifier.weight(1f)
@@ -59,21 +77,30 @@ fun PastVisitsScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_add),
                     contentDescription = "Add Past Visit",
-                    tint = Color.White
+                    tint = PrimaryColor
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Title Section
-        Text(
-            text = "Past Visits",
-            fontSize = 24.sp,
-            color = PrimaryColor
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text("Search") },
+            leadingIcon = {
+                Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
+            },
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Filtered List of Past Visits
+        val filteredVisits = pastVisits.filter {
+            it.visitPlace.contains(searchQuery, ignoreCase = true)
+        }
 
         // List of Past Visits
         Column(
@@ -81,7 +108,7 @@ fun PastVisitsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            pastVisits.forEach { pastVisit ->
+            filteredVisits.forEach { pastVisit ->
                 PastVisitCard(pastVisit)
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -94,14 +121,14 @@ fun PastVisitCard(pastVisit: PastVisit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Place: ${pastVisit.visitPlace}", fontSize = 18.sp, color = PrimaryColor)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Date: ${pastVisit.visitDate.toDate()}", fontSize = 14.sp, color = Color.Gray)
+            Text(text = "Date: ${pastVisit.visitDate}", fontSize = 14.sp, color = Color.Gray)
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Doctor's Notes: ${pastVisit.doctorNotes}", fontSize = 14.sp)
             Spacer(modifier = Modifier.height(4.dp))

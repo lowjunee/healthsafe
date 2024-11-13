@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "384716227669",
+    "project_id": "healthsafe-app",
+    "storage_bucket": "healthsafe-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384716227669:android:2eb97eb146c422ff5c80dc",
+        "android_client_info": {
+          "package_name": "com.lowjunee.healthsafe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBA0lLS73YbiDJ12obtGJ5LzbwXTO6b3iI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

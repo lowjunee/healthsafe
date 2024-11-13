@@ -13,10 +13,17 @@ import com.lowjunee.healthsafe.ui.screen.SignUpScreen
 import com.lowjunee.healthsafe.ui.screen.HomeScreen
 import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
 import androidx.compose.ui.Modifier
+import com.google.firebase.FirebaseApp
+import com.lowjunee.healthsafe.model.samplePastVisitsList
+import com.lowjunee.healthsafe.ui.screen.PastVisitsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this)
+
         setContent {
             HealthSafeTheme {
                 HealthSafeApp()
@@ -30,17 +37,16 @@ fun HealthSafeApp() {
     var showLoginScreen by remember { mutableStateOf(true) }
     var showSignUpScreen by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("home") }
+    var selectedScreen by remember { mutableStateOf("home") }
 
     Surface(color = MaterialTheme.colorScheme.background) {
         when {
             showLoginScreen -> {
                 LoginScreen(
                     onSignInClick = {
-                        // Navigate to Home screen after successful sign-in
                         showLoginScreen = false
                     },
                     onRegisterClick = {
-                        // Navigate to Sign Up screen
                         showLoginScreen = false
                         showSignUpScreen = true
                     }
@@ -48,36 +54,37 @@ fun HealthSafeApp() {
             }
             showSignUpScreen -> {
                 SignUpScreen(onSignUpSuccess = {
-                    // Navigate back to Login screen after successful sign-up
                     showSignUpScreen = false
                     showLoginScreen = true
                 })
             }
             else -> {
-                // Main App Content with Bottom Navigation Bar
                 Scaffold(
                     bottomBar = {
                         BottomNavigationBar(
                             selectedTab = selectedTab,
                             onTabSelected = { tab ->
                                 selectedTab = tab
+                                selectedScreen = tab
                             }
                         )
                     }
                 ) { paddingValues ->
-                    // Main content based on selected tab
-                    when (selectedTab) {
+                    when (selectedScreen) {
                         "home" -> HomeScreen(
                             onNavigate = { screen ->
-                                when (screen) {
-                                    "metrics" -> { /* Navigate to My Metrics screen */ }
-                                    "medications" -> { /* Navigate to Medications screen */ }
-                                    "past_visits" -> { /* Navigate to Past Visits screen */ }
-                                    "sos" -> { /* Navigate to SOS screen */ }
-                                    "qr_release" -> { /* Navigate to QR Release screen */ }
-                                }
+                                selectedScreen = screen
                             },
                             modifier = Modifier.padding(paddingValues)
+                        )
+                        "past_visits" -> PastVisitsScreen(
+                            pastVisits = samplePastVisitsList,
+                            onBackClick = {
+                                selectedScreen = "home"
+                            },
+                            onAddPastVisit = {
+                                println("Add Past Visit clicked")
+                            }
                         )
                         //"tips" -> TipsScreen(modifier = Modifier.padding(paddingValues))
                         //"profile" -> ProfileScreen(modifier = Modifier.padding(paddingValues))
@@ -88,6 +95,7 @@ fun HealthSafeApp() {
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

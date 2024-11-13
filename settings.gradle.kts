@@ -21,6 +21,7 @@ dependencyResolutionManagement {
         jcenter() // Optional
         maven { url = uri("https://jitpack.io") } // Optional
     }
+
 }
 
 rootProject.name = "HealthSafe"

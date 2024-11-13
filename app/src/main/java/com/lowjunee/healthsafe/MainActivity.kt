@@ -3,14 +3,16 @@ package com.lowjunee.healthsafe
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.lowjunee.healthsafe.ui.theme.HealthSafeTheme
-import com.lowjunee.healthsafe.ui.LoginScreen
-import com.lowjunee.healthsafe.ui.SignUpScreen
-import com.lowjunee.healthsafe.ui.HomeScreen
-
+import com.lowjunee.healthsafe.ui.screen.LoginScreen
+import com.lowjunee.healthsafe.ui.screen.SignUpScreen
+import com.lowjunee.healthsafe.ui.screen.HomeScreen
+import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
+import androidx.compose.ui.Modifier
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +29,7 @@ class MainActivity : ComponentActivity() {
 fun HealthSafeApp() {
     var showLoginScreen by remember { mutableStateOf(true) }
     var showSignUpScreen by remember { mutableStateOf(false) }
-    var showHomeScreen by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf("home") }
 
     Surface(color = MaterialTheme.colorScheme.background) {
         when {
@@ -36,7 +38,6 @@ fun HealthSafeApp() {
                     onSignInClick = {
                         // Navigate to Home screen after successful sign-in
                         showLoginScreen = false
-                        showHomeScreen = true
                     },
                     onRegisterClick = {
                         // Navigate to Sign Up screen
@@ -52,30 +53,41 @@ fun HealthSafeApp() {
                     showLoginScreen = true
                 })
             }
-            showHomeScreen -> {
-                HomeScreen(
-                    onNavigate = { screen ->
-                        // Handle navigation based on the screen parameter
-                        when (screen) {
-                            "metrics" -> { /* Navigate to My Metrics screen */ }
-                            "medications" -> { /* Navigate to Medications screen */ }
-                            "past_visits" -> { /* Navigate to Past Visits screen */ }
-                            "sos" -> { /* Navigate to SOS screen */ }
-                            "qr_release" -> { /* Navigate to QR Release screen */ }
-                        }
-                    },
-                    // ACTIVATE THIS WHEN SETTING UP SETTINGS.
-                    //onNavigateBack = {
-                        // Navigate back to the Login screen if the user logs out
-                    //    showHomeScreen = false
-                    //    showLoginScreen = true
-                    //}
-                )
+            else -> {
+                // Main App Content with Bottom Navigation Bar
+                Scaffold(
+                    bottomBar = {
+                        BottomNavigationBar(
+                            selectedTab = selectedTab,
+                            onTabSelected = { tab ->
+                                selectedTab = tab
+                            }
+                        )
+                    }
+                ) { paddingValues ->
+                    // Main content based on selected tab
+                    when (selectedTab) {
+                        "home" -> HomeScreen(
+                            onNavigate = { screen ->
+                                when (screen) {
+                                    "metrics" -> { /* Navigate to My Metrics screen */ }
+                                    "medications" -> { /* Navigate to Medications screen */ }
+                                    "past_visits" -> { /* Navigate to Past Visits screen */ }
+                                    "sos" -> { /* Navigate to SOS screen */ }
+                                    "qr_release" -> { /* Navigate to QR Release screen */ }
+                                }
+                            },
+                            modifier = Modifier.padding(paddingValues)
+                        )
+                        //"tips" -> TipsScreen(modifier = Modifier.padding(paddingValues))
+                        //"profile" -> ProfileScreen(modifier = Modifier.padding(paddingValues))
+                        //"settings" -> SettingsScreen(modifier = Modifier.padding(paddingValues))
+                    }
+                }
             }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

@@ -1,4 +1,4 @@
-package com.lowjunee.healthsafe.ui
+package com.lowjunee.healthsafe.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

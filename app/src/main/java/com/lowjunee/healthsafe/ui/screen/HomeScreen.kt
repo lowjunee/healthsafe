@@ -1,41 +1,38 @@
-package com.lowjunee.healthsafe.ui
+package com.lowjunee.healthsafe.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lowjunee.healthsafe.ui.components.HomeButton
+import com.lowjunee.healthsafe.ui.theme.HomeButton
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
+import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
 
 @Composable
-fun HomeScreen(onNavigate: (String) -> Unit) {
-    var selectedTab by remember { mutableStateOf("home") }
-
+fun HomeScreen(
+    onNavigate: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
-                selectedTab = selectedTab,
-                onTabSelected = { tab ->
-                    selectedTab = tab
-                    onNavigate(tab)
-                }
+                selectedTab = "home",
+                onTabSelected = { tab -> onNavigate(tab) }
             )
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(Color.White),
@@ -120,61 +117,5 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BottomNavigationBar(
-    selectedTab: String,
-    onTabSelected: (String) -> Unit
-) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = selectedTab == "home",
-            onClick = { onTabSelected("home") },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home"
-                )
-            },
-            label = { Text("Home") }
-        )
-
-        NavigationBarItem(
-            selected = selectedTab == "tips",
-            onClick = { onTabSelected("tips") },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = "Tips"
-                )
-            },
-            label = { Text("Tips") }
-        )
-
-        NavigationBarItem(
-            selected = selectedTab == "profile",
-            onClick = { onTabSelected("profile") },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile"
-                )
-            },
-            label = { Text("Profile") }
-        )
-
-        NavigationBarItem(
-            selected = selectedTab == "settings",
-            onClick = { onTabSelected("settings") },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings"
-                )
-            },
-            label = { Text("Settings") }
-        )
     }
 }

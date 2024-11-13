@@ -64,11 +64,12 @@ fun HealthSafeApp() {
                             "qr_release" -> { /* Navigate to QR Release screen */ }
                         }
                     },
-                    onNavigateBack = {
+                    // ACTIVATE THIS WHEN SETTING UP SETTINGS.
+                    //onNavigateBack = {
                         // Navigate back to the Login screen if the user logs out
-                        showHomeScreen = false
-                        showLoginScreen = true
-                    }
+                    //    showHomeScreen = false
+                    //    showLoginScreen = true
+                    //}
                 )
             }
         }

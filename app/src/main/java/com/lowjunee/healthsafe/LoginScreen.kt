@@ -110,7 +110,7 @@ fun LoginScreen(
                             email.isEmpty() || password.isEmpty() -> {
                                 errorMessage = "Please enter both email and password"
                             }
-                            password != "password" -> {
+                            password != "a" -> {
                                 errorMessage = "Invalid password. Try 'password'"
                             }
                             else -> {

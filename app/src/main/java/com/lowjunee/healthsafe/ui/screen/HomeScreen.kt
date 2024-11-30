@@ -2,21 +2,28 @@ package com.lowjunee.healthsafe.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lowjunee.healthsafe.ui.theme.HomeButton
-import com.lowjunee.healthsafe.ui.theme.PrimaryColor
+import com.lowjunee.healthsafe.R
 import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
+import com.lowjunee.healthsafe.ui.theme.HomeButton
+import com.lowjunee.healthsafe.ui.theme.Medication
+import com.lowjunee.healthsafe.ui.theme.Metrics
+import com.lowjunee.healthsafe.ui.theme.PrimaryColor
 
 @Composable
 fun HomeScreen(
@@ -29,92 +36,112 @@ fun HomeScreen(
                 selectedTab = "home",
                 onTabSelected = { tab -> onNavigate(tab) }
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0)
     ) { paddingValues ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White),
+                .background(Color.White)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Section with App Name
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(
-                text = "HealthSafe",
-                color = PrimaryColor,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+            // Top Profile Section
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_profile),
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                )
 
-            // Welcome Text
-            Text(
-                text = "Hello Sarah!",
-                color = Color.Black,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Medium
-            )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Column {
+                    Text(
+                        text = "Hi, Welcome Back",
+                        color = PrimaryColor,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "Sarah Lim",
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                IconButton(onClick = { onNavigate("notifications") }) {
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notifications",
+                        tint = PrimaryColor
+                    )
+                }
+
+                IconButton(onClick = { onNavigate("settings") }) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = PrimaryColor
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(20.dp))
 
             // Buttons Section
-            Card(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        HomeButton(
-                            text = "My Metrics",
-                            width = 150.dp,
-                            height = 80.dp
-                        ) { onNavigate("metrics") }
+                // My Metrics Button
+                HomeButton(
+                    text = "My Metrics",
+                    iconId = R.drawable.metrics,
+                    color = Metrics
+                ) { onNavigate("metrics") }
 
-                        HomeButton(
-                            text = "Medications",
-                            width = 150.dp,
-                            height = 80.dp
-                        ) { onNavigate("medications") }
-                    }
+                // Medications Button
+                HomeButton(
+                    text = "Medications",
+                    iconId = R.drawable.pill,
+                    color = Medication
+                ) { onNavigate("medications") }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        HomeButton(
-                            text = "Past Visits",
-                            width = 150.dp,
-                            height = 80.dp
-                        ) { onNavigate("past_visits") }
+                // Past Visits Button
+                HomeButton(
+                    text = "Past Visits",
+                    iconId = R.drawable.clinic,
+                    color = PrimaryColor
+                ) { onNavigate("past_visits") }
 
-                        HomeButton(
-                            text = "SOS",
-                            width = 150.dp,
-                            height = 80.dp
-                        ) { onNavigate("sos") }
-                    }
+                // Make an Appointment Button
+                HomeButton(
+                    text = "Make an Appointment",
+                    iconId = R.drawable.clinic,
+                    color = PrimaryColor
+                ) { onNavigate("appt") }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // "Release Data Through QR" Button (wider)
-                    HomeButton(
-                        text = "Release Data Through QR",
-                        width = 300.dp,
-                        height = 80.dp
-                    ) { onNavigate("qr_release") }
-                }
+                // Release Data Through QR Button
+                HomeButton(
+                    text = "Release Data Through QR",
+                    iconId = R.drawable.qr_code,
+                    color = PrimaryColor
+                ) { onNavigate("qr_release") }
             }
         }
     }

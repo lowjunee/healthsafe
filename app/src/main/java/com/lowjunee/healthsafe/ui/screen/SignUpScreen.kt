@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lowjunee.healthsafe.data.AuthHelper // Import AuthHelper
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
 import com.lowjunee.healthsafe.ui.theme.WhiteColor
 
@@ -23,6 +24,8 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) } // Loading state
+    val authHelper = AuthHelper() // Initialize AuthHelper
 
     Column(
         modifier = Modifier
@@ -97,26 +100,42 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                Button(
-                    onClick = {
-                        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                            errorMessage = "Please fill all fields"
-                        } else if (password != confirmPassword) {
-                            errorMessage = "Passwords do not match"
-                        } else {
-                            errorMessage = ""
-                            onSignUpSuccess()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = "Sign Up")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Arrow Icon",
-                        tint = WhiteColor
-                    )
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.padding(vertical = 16.dp))
+                } else {
+                    Button(
+                        onClick = {
+                            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                                errorMessage = "Please fill all fields"
+                            } else if (password != confirmPassword) {
+                                errorMessage = "Passwords do not match"
+                            } else {
+                                isLoading = true
+                                errorMessage = ""
+                                authHelper.signUp(
+                                    email = email,
+                                    password = password,
+                                    onSuccess = {
+                                        isLoading = false
+                                        onSignUpSuccess() // Navigate to success screen
+                                    },
+                                    onFailure = { error ->
+                                        isLoading = false
+                                        errorMessage = error
+                                    }
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Sign Up")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Arrow Icon",
+                            tint = WhiteColor
+                        )
+                    }
                 }
             }
         }

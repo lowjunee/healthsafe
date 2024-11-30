@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lowjunee.healthsafe.data.AuthHelper // Import AuthHelper
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
 import com.lowjunee.healthsafe.ui.theme.WhiteColor
 
@@ -23,10 +24,12 @@ fun LoginScreen(
     onSignInClick: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
-    // State variables for email, password, and error message
+    // State variables for email, password, loading, and error message
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) } // Loading state
+    val authHelper = AuthHelper() // Initialize AuthHelper
 
     Column(
         modifier = Modifier
@@ -103,39 +106,48 @@ fun LoginScreen(
                 }
 
                 // "Sign In" Button
-                Button(
-                    onClick = {
-                        // Dummy Login Validation
-                        when {
-                            email.isEmpty() || password.isEmpty() -> {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.padding(vertical = 16.dp))
+                } else {
+                    Button(
+                        onClick = {
+                            if (email.isEmpty() || password.isEmpty()) {
                                 errorMessage = "Please enter both email and password"
-                            }
-                            password != "a" -> {
-                                errorMessage = "Invalid password. Try 'password'"
-                            }
-                            else -> {
+                            } else {
+                                isLoading = true
                                 errorMessage = ""
-                                onSignInClick()
+                                authHelper.login(
+                                    email = email,
+                                    password = password,
+                                    onSuccess = {
+                                        isLoading = false
+                                        onSignInClick() // Navigate to the next screen
+                                    },
+                                    onFailure = { error ->
+                                        isLoading = false
+                                        errorMessage = error
+                                    }
+                                )
                             }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "Sign In",
-                        color = WhiteColor,
-                        fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Arrow Icon",
-                        tint = WhiteColor
-                    )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "Sign In",
+                            color = WhiteColor,
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Arrow Icon",
+                            tint = WhiteColor
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 

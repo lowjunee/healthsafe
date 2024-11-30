@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,12 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lowjunee.healthsafe.R
 import com.lowjunee.healthsafe.model.PastVisit
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
-import com.google.firebase.firestore.FirebaseFirestore
 import com.lowjunee.healthsafe.data.FirestoreHelper
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PastVisitsScreen(
     onBackClick: () -> Unit,
@@ -41,76 +41,67 @@ fun PastVisitsScreen(
         )
     }
 
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        // Top Section with Back Button and Title
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_back),
-                    contentDescription = "Back",
-                    tint = PrimaryColor
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(
-                text = "Past Visits",
-                color = PrimaryColor,
-                fontSize = 28.sp,
-                modifier = Modifier.weight(1f)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Past Visits", color = Color.White, fontSize = 20.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onAddPastVisit) {
+                        Icon(
+                            painter = painterResource(id = com.lowjunee.healthsafe.R.drawable.ic_add),
+                            contentDescription = "Add Past Visit",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = PrimaryColor)
             )
-
-            // Add Button
-            IconButton(onClick = onAddPastVisit) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_add),
-                    contentDescription = "Add Past Visit",
-                    tint = PrimaryColor
-                )
-            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Search Bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("Search") },
-            leadingIcon = {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Filtered List of Past Visits
-        val filteredVisits = pastVisits.filter {
-            it.visitPlace.contains(searchQuery, ignoreCase = true)
-        }
-
-        // List of Past Visits
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .background(Color.White)
+                .padding(padding)
+                .padding(16.dp)
         ) {
-            filteredVisits.forEach { pastVisit ->
-                PastVisitCard(pastVisit)
-                Spacer(modifier = Modifier.height(8.dp))
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search") },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Filtered List of Past Visits
+            val filteredVisits = pastVisits.filter {
+                it.visitPlace.contains(searchQuery, ignoreCase = true)
+            }
+
+            // List of Past Visits
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                filteredVisits.forEach { pastVisit ->
+                    PastVisitCard(pastVisit)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }

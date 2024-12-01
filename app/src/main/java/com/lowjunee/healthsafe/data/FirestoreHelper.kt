@@ -3,6 +3,7 @@ package com.lowjunee.healthsafe.data
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lowjunee.healthsafe.model.Metric
 import com.lowjunee.healthsafe.model.PastVisit
+import com.lowjunee.healthsafe.model.Medication
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,27 +58,93 @@ class FirestoreHelper {
             }
     }
 
-    // Upload Test Data
-    fun addTestPastVisit() {
-        val sampleVisit = PastVisit(
-            userId = "testUser",
-            visitPlace = "Hospital Kuala Lumpur",
-            visitDate = "10 Aug 2024",
-            doctorNotes = "Patient recovering well",
-            dietaryInstructions = "Low salt diet",
-            postOperativeInstructions = "No heavy lifting",
-            medicationNotes = "Continue antibiotics for 7 days"
-        )
-
-        db.collection("past_visits")
-            .add(sampleVisit)
+    fun saveMedicationToDatabase(
+        medication: Medication,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("medications")
+            .add(medication)
             .addOnSuccessListener {
-                println("Test data added successfully!")
+                onSuccess()
             }
-            .addOnFailureListener { e ->
-                println("Failed to add test data: ${e.message}")
+            .addOnFailureListener { exception ->
+                onFailure(exception)
             }
     }
+
+    // Upload Test Data
+    fun addTestPastVisits() {
+        val sampleVisits = listOf(
+            PastVisit(
+                userId = "user123",
+                visitPlace = "Clinic Putrajaya",
+                visitDate = "2024-07-15 09:30", // Adjusted to "yyyy-MM-dd HH:mm"
+                doctorNotes = "Patient showing signs of improvement",
+                dietaryInstructions = "Avoid sugary drinks",
+                postOperativeInstructions = "Regular dressing changes",
+                medicationNotes = "Take painkillers as prescribed"
+            ),
+            PastVisit(
+                userId = "user123",
+                visitPlace = "Hospital Selayang",
+                visitDate = "2024-06-05 14:15", // Adjusted to "yyyy-MM-dd HH:mm"
+                doctorNotes = "No significant findings",
+                dietaryInstructions = "Maintain a balanced diet",
+                postOperativeInstructions = "Resume light exercises",
+                medicationNotes = "Stop antihistamines after 3 days"
+            ),
+            PastVisit(
+                userId = "user123",
+                visitPlace = "Pantai Hospital",
+                visitDate = "2024-09-20 10:45", // Adjusted to "yyyy-MM-dd HH:mm"
+                doctorNotes = "Stable condition",
+                dietaryInstructions = "Increase protein intake",
+                postOperativeInstructions = "Avoid swimming for 2 weeks",
+                medicationNotes = "Apply ointment to affected area twice daily"
+            ),
+            PastVisit(
+                userId = "user123",
+                visitPlace = "Sunway Medical Centre",
+                visitDate = "2024-03-01 11:00", // Adjusted to "yyyy-MM-dd HH:mm"
+                doctorNotes = "Patient recovering from flu",
+                dietaryInstructions = "Increase fluid intake",
+                postOperativeInstructions = "Take adequate rest",
+                medicationNotes = "Complete the course of antibiotics"
+            ),
+            PastVisit(
+                userId = "user123",
+                visitPlace = "KPJ Damansara Specialist",
+                visitDate = "2024-12-12 16:00", // Adjusted to "yyyy-MM-dd HH:mm"
+                doctorNotes = "Follow-up required in 6 months",
+                dietaryInstructions = "Low-fat diet",
+                postOperativeInstructions = "Monitor blood pressure daily",
+                medicationNotes = "Adjust antihypertensive dosage as needed"
+            )
+        )
+
+        sampleVisits.forEach { visit ->
+            db.collection("past_visits")
+                .add(visit)
+                .addOnSuccessListener {
+                    println("Added past visit for ${visit.visitPlace} successfully!")
+                }
+                .addOnFailureListener { e ->
+                    println("Failed to add past visit for ${visit.visitPlace}: ${e.message}")
+                }
+        }
+    }
+
+
+    fun addPastVisit(pastVisit: PastVisit, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        db.collection("past_visits")
+            .add(pastVisit)
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { exception -> onFailure(exception) }
+    }
+
+
 
     // Insert Dummy Data into Firestore
     fun insertDummyData(
@@ -343,8 +410,34 @@ class FirestoreHelper {
             }
     }
 
+    fun addMedication(medication: Medication, onComplete: () -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val medicationId = db.collection("medications").document().id // Generate a random ID
+        val medicationWithId = medication.copy(id = medicationId) // Include the ID in the Medication object
 
+        db.collection("medications")
+            .document(medicationId) // Use the generated ID as the document ID
+            .set(medicationWithId)
+            .addOnSuccessListener { onComplete() }
+            .addOnFailureListener { e -> println("Error adding medication: ${e.message}") }
+    }
 
+    fun updateMedication(
+        medicationId: String,
+        updatedData: Map<String, Any>,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("medications")
+            .document(medicationId)
+            .update(updatedData)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 
 
 }

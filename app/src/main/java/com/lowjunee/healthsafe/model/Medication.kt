@@ -1,13 +1,14 @@
 package com.lowjunee.healthsafe.model
 
 data class Medication(
+    val id: String = "", // Add this to store the unique ID
     val userId: String = "",
     val name: String = "",
+    val notes: String = "",
     val dosage: String = "",
-    val interval: String = "", // Choices: "Daily", "Twice-Daily", "Thrice-Daily", "Weekly", "Monthly"
-    val time: String = "", // Time in HH:mm format (e.g., "08:30")
-    val notify: Boolean = false, // Whether to send a notification
-    val notes: String = ""
+    val interval: String = "",
+    val time: String = "",
+    val notify: Boolean = false
 )
 
 

@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -33,7 +32,17 @@ fun PastVisitsScreen(
     LaunchedEffect(Unit) {
         FirestoreHelper().fetchPastVisits(
             onSuccess = { fetchedVisits ->
-                pastVisits = fetchedVisits
+                pastVisits = fetchedVisits.sortedByDescending { visit ->
+                    try {
+                        // Parse `visitDate` to a comparable format
+                        java.time.LocalDateTime.parse(
+                            visit.visitDate,
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                        )
+                    } catch (e: Exception) {
+                        java.time.LocalDateTime.MIN // Assign the earliest possible time if parsing fails
+                    }
+                }
             },
             onFailure = { e ->
                 println("Failed to fetch past visits: ${e.message}")
@@ -114,20 +123,44 @@ fun PastVisitCard(pastVisit: PastVisit) {
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(8.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.LightGray) // Gray background
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Place: ${pastVisit.visitPlace}", fontSize = 18.sp, color = PrimaryColor)
+            Text(
+                text = "Place: ${pastVisit.visitPlace}",
+                fontSize = 18.sp,
+                color = PrimaryColor
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Date: ${pastVisit.visitDate}", fontSize = 14.sp, color = Color.Gray)
+            Text(
+                text = "Date: ${pastVisit.visitDate}",
+                fontSize = 14.sp,
+                color = Color.DarkGray
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Doctor's Notes: ${pastVisit.doctorNotes}", fontSize = 14.sp)
+            Text(
+                text = "Doctor's Notes: ${pastVisit.doctorNotes}",
+                fontSize = 14.sp,
+                color = Color.Black
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Dietary Instructions: ${pastVisit.dietaryInstructions}", fontSize = 14.sp)
+            Text(
+                text = "Dietary Instructions: ${pastVisit.dietaryInstructions}",
+                fontSize = 14.sp,
+                color = Color.Black
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Post-Op Instructions: ${pastVisit.postOperativeInstructions}", fontSize = 14.sp)
+            Text(
+                text = "Post-Op Instructions: ${pastVisit.postOperativeInstructions}",
+                fontSize = 14.sp,
+                color = Color.Black
+            )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Medication Notes: ${pastVisit.medicationNotes}", fontSize = 14.sp)
+            Text(
+                text = "Medication Notes: ${pastVisit.medicationNotes}",
+                fontSize = 14.sp,
+                color = Color.Black
+            )
         }
     }
 }

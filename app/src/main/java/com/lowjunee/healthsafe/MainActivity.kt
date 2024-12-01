@@ -13,6 +13,8 @@ import com.lowjunee.healthsafe.ui.screen.*
 import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
 import com.google.firebase.FirebaseApp
 import com.lowjunee.healthsafe.data.FirestoreHelper
+import com.lowjunee.healthsafe.model.Medication
+
 
 class MainActivity : ComponentActivity() {
     private val firestoreHelper = FirestoreHelper()
@@ -20,8 +22,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
+        //firestoreHelper.addTestPastVisits()
 
         setContent {
             HealthSafeTheme {
@@ -37,6 +41,7 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
     var showSignUpScreen by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("home") }
     var selectedScreen by remember { mutableStateOf("home") }
+    var selectedMedication by remember { mutableStateOf<Map<String, Any>?>(null) }
 
     Surface(color = MaterialTheme.colorScheme.background) {
         when {
@@ -63,7 +68,22 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                     "home" -> HomeScreen(onNavigate = { selectedScreen = it })
                     "past_visits" -> PastVisitsScreen(
                         onBackClick = { selectedScreen = "home" },
-                        onAddPastVisit = { println("Add Past Visit clicked") }
+                        onAddPastVisit = { selectedScreen = "add_past_visit" } // Navigate to AddPastVisitsScreen
+                    )
+                    "add_past_visit" -> AddPastVisitsScreen(
+                        onBackClick = { selectedScreen = "past_visits" },
+                        onSaveClick = { pastVisit ->
+                            firestoreHelper.addPastVisit(
+                                pastVisit = pastVisit,
+                                onSuccess = {
+                                    println("Past visit added successfully!")
+                                    selectedScreen = "past_visits" // Navigate back to PastVisitsScreen
+                                },
+                                onFailure = { e ->
+                                    println("Error adding past visit: ${e.message}")
+                                }
+                            )
+                        }
                     )
                     "metrics" -> MyMetricsScreen(
                         onMetricClick = { metricType ->
@@ -74,6 +94,7 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                                 "Steps" -> selectedScreen = "steps_metrics"
                                 "Calories Burned" -> selectedScreen = "calories_burned_metrics"
                                 "Flights Climbed" -> selectedScreen = "flights_climbed_metrics"
+                                "Medications" -> selectedScreen = "medications"
                             }
                         },
                         onBackClick = { selectedScreen = "home" },
@@ -108,6 +129,60 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                         firestoreHelper = firestoreHelper,
                         userId = "user123",
                         onBackClick = { selectedScreen = "metrics" }
+                    )
+                    "medications" -> MedicationsScreen(
+                        onBackClick = { selectedScreen = "home" },
+                        onAddMedicationClick = { selectedScreen = "add_medication" },
+                        onEditMedicationClick = { medication ->
+                            selectedMedication = medication
+                            selectedScreen = "edit_medication"
+                        }
+                    )
+                    "add_medication" -> AddMedicationScreen(
+                        onBackClick = { selectedScreen = "medications" },
+                        onSaveMedicationClick = { id, name, notes, dosage, interval, time, notify ->
+                            val medication = Medication(
+                                id = id, // Pass the generated ID
+                                userId = "user123",
+                                name = name,
+                                notes = notes,
+                                dosage = dosage,
+                                interval = interval,
+                                time = time.toString(),
+                                notify = notify
+                            )
+                            firestoreHelper.addMedication(medication) {
+                                println("Medication saved successfully")
+                                selectedScreen = "medications"
+                            }
+                        }
+                    )
+                    "edit_medication" -> EditMedicationScreen(
+                        medication = selectedMedication ?: emptyMap(),
+                        onBackClick = { selectedScreen = "medications" },
+                        onSaveMedicationClick = { name, notes, dosage, interval, time, notify, onComplete ->
+                            if (selectedMedication != null) {
+                                firestoreHelper.updateMedication(
+                                    medicationId = selectedMedication!!["id"] as String, // Use the ID to update
+                                    updatedData = mapOf(
+                                        "name" to name,
+                                        "notes" to notes,
+                                        "dosage" to dosage,
+                                        "interval" to interval,
+                                        "time" to time,
+                                        "notify" to notify
+                                    ),
+                                    onSuccess = {
+                                        println("Medication updated successfully")
+                                        onComplete() // Invoke the completion callback
+                                        selectedScreen = "medications" // Navigate back to MedicationsScreen
+                                    },
+                                    onFailure = { exception ->
+                                        println("Error updating medication: ${exception.message}")
+                                    }
+                                )
+                            }
+                        }
                     )
                     "profile" -> ProfileScreen(
                         firestoreHelper = firestoreHelper,

@@ -77,6 +77,7 @@ fun LoginScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
+                    textStyle = LocalTextStyle.current.copy(color = Color.Black), // Change input text color to black
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = email.isEmpty() && errorMessage.isNotEmpty()
@@ -88,6 +89,7 @@ fun LoginScreen(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password") },
+                    textStyle = LocalTextStyle.current.copy(color = Color.Black), // Change input text color to black
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -162,3 +164,4 @@ fun LoginScreen(
         }
     }
 }
+

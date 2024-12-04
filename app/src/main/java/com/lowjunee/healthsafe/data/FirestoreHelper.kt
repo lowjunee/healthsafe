@@ -1,17 +1,43 @@
 package com.lowjunee.healthsafe.data
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lowjunee.healthsafe.model.Metric
 import com.lowjunee.healthsafe.model.PastVisit
 import com.lowjunee.healthsafe.model.Medication
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalTime
 import java.util.Date
 import java.util.Locale
+
 
 class FirestoreHelper {
     private val db = FirebaseFirestore.getInstance()
 
     // Fetch Metrics
+    fun getUserDetails(
+        onSuccess: (Map<String, String>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return onFailure(Exception("User not logged in"))
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    val userDetails = document.data?.mapValues { it.value.toString() } ?: emptyMap()
+                    onSuccess(userDetails)
+                } else {
+                    onFailure(Exception("User details not found"))
+                }
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
     fun getMetrics(onSuccess: (List<Metric>) -> Unit) {
         db.collection("metrics")
             .get()
@@ -45,6 +71,7 @@ class FirestoreHelper {
             }
     }
 
+
     // Fetch Past Visits
     fun fetchPastVisits(onSuccess: (List<PastVisit>) -> Unit, onFailure: (Exception) -> Unit) {
         db.collection("past_visits")
@@ -58,21 +85,6 @@ class FirestoreHelper {
             }
     }
 
-    fun saveMedicationToDatabase(
-        medication: Medication,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        val db = FirebaseFirestore.getInstance()
-        db.collection("medications")
-            .add(medication)
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener { exception ->
-                onFailure(exception)
-            }
-    }
 
     // Upload Test Data
     fun addTestPastVisits() {
@@ -436,6 +448,99 @@ class FirestoreHelper {
             }
             .addOnFailureListener { exception ->
                 onFailure(exception)
+            }
+    }
+    fun deleteMedication(
+        medicationId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("medications")
+            .document(medicationId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess() // Successfully deleted
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception) // Handle failure
+            }
+    }
+
+
+    fun addDoctors(onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val doctors = listOf(
+            mapOf(
+                "name" to "Dr. Ahmad Zainal",
+                "clinic" to "KPJ Damansara Specialist Hospital",
+                "expertise" to "Cardiologist",
+                "image" to "https://example.com/images/dr_ahmad_zainal.jpg" // Replace with actual image URLs
+            ),
+            mapOf(
+                "name" to "Dr. Lim Wei Ming",
+                "clinic" to "Sunway Medical Centre",
+                "expertise" to "Orthopedic Surgeon",
+                "image" to "https://example.com/images/dr_lim_wei_ming.jpg"
+            ),
+            mapOf(
+                "name" to "Dr. Nur Aina Abdullah",
+                "clinic" to "Pantai Hospital Kuala Lumpur",
+                "expertise" to "Pediatrician",
+                "image" to "https://example.com/images/dr_nur_aina_abdullah.jpg"
+            ),
+            mapOf(
+                "name" to "Dr. Siva Kumar",
+                "clinic" to "Gleneagles Hospital Penang",
+                "expertise" to "Neurologist",
+                "image" to "https://example.com/images/dr_siva_kumar.jpg"
+            ),
+            mapOf(
+                "name" to "Dr. Chong Mei Ling",
+                "clinic" to "Columbia Asia Hospital Cheras",
+                "expertise" to "Dermatologist",
+                "image" to "https://example.com/images/dr_chong_mei_ling.jpg"
+            )
+        )
+
+        // Upload doctors to Firestore
+        val batch = db.batch()
+        val collectionRef = db.collection("doctors")
+
+        doctors.forEach { doctor ->
+            val docRef = collectionRef.document() // Generate a new document ID for each doctor
+            batch.set(docRef, doctor)
+        }
+
+        batch.commit()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { e -> onFailure(e) }
+    }
+
+    fun addAppointment(
+        reason: String,
+        name: String,
+        clinic: String,
+        time: LocalTime,
+        date: LocalDate,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val appointment = mapOf(
+            "reason" to reason,
+            "name" to name,
+            "clinic" to clinic,
+            "time" to time.toString(),
+            "date" to date.toString(),
+            "userId" to "user123", // Replace with the actual logged-in user ID
+            "status" to "Pending" // Default status for the appointment
+        )
+
+        val appointmentsCollection = db.collection("appointments")
+        appointmentsCollection.add(appointment)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
             }
     }
 

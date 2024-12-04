@@ -1,9 +1,10 @@
 package com.lowjunee.healthsafe.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -12,21 +13,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lowjunee.healthsafe.R
 import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
 import com.lowjunee.healthsafe.ui.theme.HomeButton
-import com.lowjunee.healthsafe.ui.theme.Medication
-import com.lowjunee.healthsafe.ui.theme.Metrics
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
 
 @Composable
 fun HomeScreen(
+    userName: String, // Pass the user's name dynamically
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -55,16 +56,16 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Profile Picture
                 Icon(
                     painter = painterResource(id = R.drawable.ic_profile),
                     contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
+                    modifier = Modifier.size(50.dp)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
+                // Greeting and Name
                 Column {
                     Text(
                         text = "Hi, Welcome Back",
@@ -72,7 +73,7 @@ fun HomeScreen(
                         fontSize = 14.sp
                     )
                     Text(
-                        text = "Sarah Lim",
+                        text = userName,
                         color = Color.Black,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -81,6 +82,7 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
+                // Notifications Icon
                 IconButton(onClick = { onNavigate("notifications") }) {
                     Icon(
                         imageVector = Icons.Default.Notifications,
@@ -89,6 +91,7 @@ fun HomeScreen(
                     )
                 }
 
+                // Settings Icon
                 IconButton(onClick = { onNavigate("settings") }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -100,43 +103,69 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Buttons Section
+            // Grid Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 0.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // First Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically // Center icons vertically
+                ) {
+                    FeatureItem(
+                        imageRes = R.drawable.metrics,
+                        label = "My Metrics",
+                        onClick = { onNavigate("metrics") },
+                        size = 80.dp
+                    )
+                    FeatureItem(
+                        imageRes = R.drawable.pill,
+                        label = "Medications",
+                        onClick = { onNavigate("medications") },
+                        size = 80.dp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(50.dp))
+
+                // Second Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically // Center icons vertically
+                ) {
+                    FeatureItem(
+                        imageRes = R.drawable.clinic,
+                        label = "Past Visits",
+                        onClick = { onNavigate("past_visits") },
+                        size = 80.dp
+                    )
+                    FeatureItem(
+                        imageRes = R.drawable.appointment_logo,
+                        label = "Appointment",
+                        onClick = { onNavigate("appointments") }, // Updated navigation to appointments
+                        size = 80.dp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(60.dp))
+
+            // Release Data Through QR Button
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // My Metrics Button
-                HomeButton(
-                    text = "My Metrics",
-                    iconId = R.drawable.metrics,
-                    color = Metrics
-                ) { onNavigate("metrics") }
-
-                // Medications Button
-                HomeButton(
-                    text = "Medications",
-                    iconId = R.drawable.pill,
-                    color = Medication
-                ) { onNavigate("medications") }
-
-                // Past Visits Button
-                HomeButton(
-                    text = "Past Visits",
-                    iconId = R.drawable.clinic,
-                    color = PrimaryColor
-                ) { onNavigate("past_visits") }
-
-                // Make an Appointment Button
-                HomeButton(
-                    text = "Make an Appointment",
-                    iconId = R.drawable.clinic,
-                    color = PrimaryColor
-                ) { onNavigate("appt") }
-
-                // Release Data Through QR Button
                 HomeButton(
                     text = "Release Data Through QR",
                     iconId = R.drawable.qr_code,
@@ -144,5 +173,35 @@ fun HomeScreen(
                 ) { onNavigate("qr_release") }
             }
         }
+    }
+}
+
+
+@Composable
+fun FeatureItem(
+    imageRes: Int,
+    label: String,
+    onClick: () -> Unit,
+    size: Dp
+) {
+    Column(
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = imageRes),
+            contentDescription = label,
+            modifier = Modifier.size(size),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
     }
 }

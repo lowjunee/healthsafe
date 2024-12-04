@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.lowjunee.healthsafe.data.FirestoreHelper
 import com.lowjunee.healthsafe.model.Metric
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeartRateMetricsScreen(
@@ -24,19 +23,41 @@ fun HeartRateMetricsScreen(
     var heartRateMetrics by remember { mutableStateOf<List<Metric>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf("") }
+    var userId by remember { mutableStateOf("") }
 
-    // Fetch heart rate data from Firestore
+    // Fetch user details and then heart rate data
     LaunchedEffect(Unit) {
-        firestoreHelper.getHeartRateMetrics(
-            userId = userId,
-            onSuccess = { metrics ->
-                isLoading = false
-                heartRateMetrics = metrics // Update state with fetched data
-                heartRateMetrics = metrics.sortedByDescending { it.timestamp }
+        println("Fetching user details to retrieve userId") // Debugging
+        firestoreHelper.getUserDetails(
+            onSuccess = { userDetails ->
+                userId = userDetails["userId"] ?: ""
+                if (userId.isEmpty()) {
+                    println("UserId is empty!") // Debugging
+                    isLoading = false
+                    errorMessage = "User ID not found. Please log in."
+                    return@getUserDetails
+                }
+                println("Fetched userId: $userId") // Debugging
+
+                // Now fetch heart rate metrics using the userId
+                firestoreHelper.getHeartRateMetrics(
+                    userId = userId,
+                    onSuccess = { metrics ->
+                        println("Fetched heart rate metrics: $metrics") // Debugging
+                        isLoading = false
+                        heartRateMetrics = metrics.sortedByDescending { it.timestamp } // Sort by timestamp
+                    },
+                    onFailure = { error ->
+                        println("Error fetching heart rate metrics: $error") // Debugging
+                        isLoading = false
+                        errorMessage = error
+                    }
+                )
             },
             onFailure = { error ->
+                println("Error fetching user details: ${error.message}") // Debugging
                 isLoading = false
-                errorMessage = error // Update state with error message
+                errorMessage = "Failed to fetch user details: ${error.message}"
             }
         )
     }

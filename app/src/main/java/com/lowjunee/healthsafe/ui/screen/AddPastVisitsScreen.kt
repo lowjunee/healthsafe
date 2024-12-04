@@ -85,7 +85,7 @@ fun AddPastVisitsScreen(
             OutlinedTextField(
                 value = visitDate,
                 onValueChange = { visitDate = it },
-                label = { Text("Visit Date (e.g., 2024-02-10)") },
+                label = { Text("Visit Date (e.g., 2024-02-10 09:30)") },
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
                 textStyle = LocalTextStyle.current.copy(color = Color.Black), // Black text
                 modifier = Modifier.fillMaxWidth()

@@ -1,32 +1,32 @@
 package com.lowjunee.healthsafe
 
+import AddAppointmentScreen
+import AppointmentsScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.lowjunee.healthsafe.ui.theme.HealthSafeTheme
 import com.lowjunee.healthsafe.ui.screen.*
 import com.lowjunee.healthsafe.ui.theme.BottomNavigationBar
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.lowjunee.healthsafe.data.FirestoreHelper
 import com.lowjunee.healthsafe.model.Medication
-
 
 class MainActivity : ComponentActivity() {
     private val firestoreHelper = FirestoreHelper()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-        // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        //firestoreHelper.addTestPastVisits()
-
         setContent {
             HealthSafeTheme {
                 HealthSafeApp(firestoreHelper)
@@ -42,12 +42,54 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
     var selectedTab by remember { mutableStateOf("home") }
     var selectedScreen by remember { mutableStateOf("home") }
     var selectedMedication by remember { mutableStateOf<Map<String, Any>?>(null) }
+    var selectedDoctorName by remember { mutableStateOf("") }
+    var selectedClinicName by remember { mutableStateOf("") }
+    var userName by remember { mutableStateOf<String?>(null) }
+    var userId by remember { mutableStateOf<String?>(null) } // Dynamically update userId
+
+    // Monitor the current user's authentication state
+    LaunchedEffect(Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            firestoreHelper.getUserDetails(
+                onSuccess = { userDetails ->
+                    userName = userDetails["name"] ?: "Guest"
+                    showLoginScreen = false
+                },
+                onFailure = {
+                    userName = "Guest"
+                    showLoginScreen = false
+                }
+            )
+        } else {
+            userName = null
+            userId = null
+            showLoginScreen = true
+        }
+    }
 
     Surface(color = MaterialTheme.colorScheme.background) {
         when {
             showLoginScreen -> LoginScreen(
-                onSignInClick = { showLoginScreen = false },
-                onRegisterClick = { showLoginScreen = false; showSignUpScreen = true }
+                onSignInClick = {
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    if (currentUser != null) {
+                        userId = currentUser.uid
+                        firestoreHelper.getUserDetails(
+                            onSuccess = { userDetails ->
+                                userName = userDetails["name"] ?: "Guest"
+                                showLoginScreen = false
+                            },
+                            onFailure = {
+                                userName = "Guest"
+                                showLoginScreen = false
+                            }
+                        )
+                    }
+                },
+                onRegisterClick = {
+                    showLoginScreen = false
+                    showSignUpScreen = true }
             )
             showSignUpScreen -> SignUpScreen(onSignUpSuccess = {
                 showSignUpScreen = false
@@ -65,22 +107,35 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                 }
             ) { paddingValues ->
                 when (selectedScreen) {
-                    "home" -> HomeScreen(onNavigate = { selectedScreen = it })
-                    "past_visits" -> PastVisitsScreen(
-                        onBackClick = { selectedScreen = "home" },
-                        onAddPastVisit = { selectedScreen = "add_past_visit" } // Navigate to AddPastVisitsScreen
+                    "home" -> HomeScreen(
+                        userName = userName ?: "Guest",
+                        onNavigate = { selectedScreen = it }
                     )
-                    "add_past_visit" -> AddPastVisitsScreen(
-                        onBackClick = { selectedScreen = "past_visits" },
-                        onSaveClick = { pastVisit ->
-                            firestoreHelper.addPastVisit(
-                                pastVisit = pastVisit,
+                    "appointments" -> AppointmentsScreen(
+                        onBackClick = { selectedScreen = "home" },
+                        onDoctorClick = { name, clinic ->
+                            selectedDoctorName = name
+                            selectedClinicName = clinic
+                            selectedScreen = "add_appointment"
+                        }
+                    )
+                    "add_appointment" -> AddAppointmentScreen(
+                        onBackClick = { selectedScreen = "appointments" },
+                        doctorName = selectedDoctorName,
+                        clinicName = selectedClinicName,
+                        onSaveAppointmentClick = { reason, clinicName, time, date ->
+                            firestoreHelper.addAppointment(
+                                reason = reason,
+                                name = selectedDoctorName,
+                                clinic = selectedClinicName,
+                                time = time,
+                                date = date,
                                 onSuccess = {
-                                    println("Past visit added successfully!")
-                                    selectedScreen = "past_visits" // Navigate back to PastVisitsScreen
+                                    println("Appointment added successfully!")
+                                    selectedScreen = "appointments"
                                 },
                                 onFailure = { e ->
-                                    println("Error adding past visit: ${e.message}")
+                                    println("Error adding appointment: ${e.message}")
                                 }
                             )
                         }
@@ -100,36 +155,48 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                         onBackClick = { selectedScreen = "home" },
                         modifier = Modifier.padding(paddingValues)
                     )
-                    "heart_rate_metrics" -> HeartRateMetricsScreen(
-                        firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onBackClick = { selectedScreen = "metrics" }
-                    )
-                    "blood_pressure_metrics" -> BloodPressureMetricsScreen(
-                        firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onBackClick = { selectedScreen = "metrics" }
-                    )
-                    "ecg_metrics" -> ECGMetricsScreen(
-                        firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onBackClick = { selectedScreen = "metrics" }
-                    )
-                    "steps_metrics" -> StepsMetricsScreen(
-                        firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onBackClick = { selectedScreen = "metrics" }
-                    )
-                    "calories_burned_metrics" -> CaloriesBurnedMetricsScreen(
-                        firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onBackClick = { selectedScreen = "metrics" }
-                    )
-                    "flights_climbed_metrics" -> FlightsClimbedMetricsScreen(
-                        firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onBackClick = { selectedScreen = "metrics" }
-                    )
+                    "heart_rate_metrics" -> userId?.let {
+                        HeartRateMetricsScreen(
+                            firestoreHelper = firestoreHelper,
+                            userId = it,
+                            onBackClick = { selectedScreen = "metrics" }
+                        )
+                    }
+                    "blood_pressure_metrics" -> userId?.let {
+                        BloodPressureMetricsScreen(
+                            firestoreHelper = firestoreHelper,
+                            userId = it,
+                            onBackClick = { selectedScreen = "metrics" }
+                        )
+                    }
+                    "ecg_metrics" -> userId?.let {
+                        ECGMetricsScreen(
+                            firestoreHelper = firestoreHelper,
+                            userId = it,
+                            onBackClick = { selectedScreen = "metrics" }
+                        )
+                    }
+                    "steps_metrics" -> userId?.let {
+                        StepsMetricsScreen(
+                            firestoreHelper = firestoreHelper,
+                            userId = it,
+                            onBackClick = { selectedScreen = "metrics" }
+                        )
+                    }
+                    "calories_burned_metrics" -> userId?.let {
+                        CaloriesBurnedMetricsScreen(
+                            firestoreHelper = firestoreHelper,
+                            userId = it,
+                            onBackClick = { selectedScreen = "metrics" }
+                        )
+                    }
+                    "flights_climbed_metrics" -> userId?.let {
+                        FlightsClimbedMetricsScreen(
+                            firestoreHelper = firestoreHelper,
+                            userId = it,
+                            onBackClick = { selectedScreen = "metrics" }
+                        )
+                    }
                     "medications" -> MedicationsScreen(
                         onBackClick = { selectedScreen = "home" },
                         onAddMedicationClick = { selectedScreen = "add_medication" },
@@ -142,8 +209,8 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                         onBackClick = { selectedScreen = "medications" },
                         onSaveMedicationClick = { id, name, notes, dosage, interval, time, notify ->
                             val medication = Medication(
-                                id = id, // Pass the generated ID
-                                userId = "user123",
+                                id = id,
+                                userId = userId ?: "",
                                 name = name,
                                 notes = notes,
                                 dosage = dosage,
@@ -163,7 +230,7 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                         onSaveMedicationClick = { name, notes, dosage, interval, time, notify, onComplete ->
                             if (selectedMedication != null) {
                                 firestoreHelper.updateMedication(
-                                    medicationId = selectedMedication!!["id"] as String, // Use the ID to update
+                                    medicationId = selectedMedication!!["id"] as String,
                                     updatedData = mapOf(
                                         "name" to name,
                                         "notes" to notes,
@@ -174,11 +241,25 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                                     ),
                                     onSuccess = {
                                         println("Medication updated successfully")
-                                        onComplete() // Invoke the completion callback
-                                        selectedScreen = "medications" // Navigate back to MedicationsScreen
+                                        onComplete()
+                                        selectedScreen = "medications"
                                     },
                                     onFailure = { exception ->
                                         println("Error updating medication: ${exception.message}")
+                                    }
+                                )
+                            }
+                        },
+                        onDeleteMedicationClick = {
+                            if (selectedMedication != null) {
+                                firestoreHelper.deleteMedication(
+                                    medicationId = selectedMedication!!["id"] as String,
+                                    onSuccess = {
+                                        println("Medication deleted successfully")
+                                        selectedScreen = "medications"
+                                    },
+                                    onFailure = { exception ->
+                                        println("Error deleting medication: ${exception.message}")
                                     }
                                 )
                             }
@@ -186,14 +267,21 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                     )
                     "profile" -> ProfileScreen(
                         firestoreHelper = firestoreHelper,
-                        userId = "user123",
-                        onLinkDataSuccess = { selectedScreen = "metrics" }
+                        userId = userId ?: "",
+                        onLinkDataSuccess = { selectedScreen = "metrics" },
+                        onLogout = {
+                            FirebaseAuth.getInstance().signOut()
+                            selectedScreen = "home"
+                            showLoginScreen = true
+                        }
                     )
                 }
             }
         }
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

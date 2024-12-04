@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,7 +25,8 @@ import java.time.format.DateTimeFormatter
 fun EditMedicationScreen(
     medication: Map<String, Any>, // Pass the selected medication details
     onBackClick: () -> Unit,
-    onSaveMedicationClick: (String, String, String, String, String, Boolean, () -> Unit) -> Unit
+    onSaveMedicationClick: (String, String, String, String, String, Boolean, () -> Unit) -> Unit,
+    onDeleteMedicationClick: () -> Unit // Callback for deleting the medication
 ) {
     // Parsing and initializing state
     var medicationName by remember { mutableStateOf(medication["name"] as? String ?: "") }
@@ -51,25 +53,37 @@ fun EditMedicationScreen(
                     }
                 },
                 actions = {
-                    TextButton(
-                        onClick = {
-                            if (medicationName.isNotEmpty() && dosage.isNotEmpty()) {
-                                onSaveMedicationClick(
-                                    medicationName,
-                                    medicationNotes,
-                                    dosage,
-                                    interval,
-                                    selectedTime,
-                                    notify
-                                ) {
-                                    onBackClick() // Navigate back to `MedicationsScreen`
-                                }
-                            } else {
-                                println("Medication name and dosage cannot be empty")
-                            }
+                    Row {
+                        // Delete Button
+                        IconButton(onClick = onDeleteMedicationClick) {
+                            Icon(
+                                painter = painterResource(id = com.lowjunee.healthsafe.R.drawable.ic_delete), // Add your trash icon drawable
+                                contentDescription = "Delete",
+                                tint = Color.White
+                            )
                         }
-                    ) {
-                        Text("Save", color = Color.White)
+
+                        // Save Button
+                        TextButton(
+                            onClick = {
+                                if (medicationName.isNotEmpty() && dosage.isNotEmpty()) {
+                                    onSaveMedicationClick(
+                                        medicationName,
+                                        medicationNotes,
+                                        dosage,
+                                        interval,
+                                        selectedTime,
+                                        notify
+                                    ) {
+                                        onBackClick() // Navigate back to `MedicationsScreen`
+                                    }
+                                } else {
+                                    println("Medication name and dosage cannot be empty")
+                                }
+                            }
+                        ) {
+                            Text("Save", color = Color.White)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -167,6 +181,7 @@ fun EditMedicationScreen(
         }
     }
 }
+
 
 @Composable
 fun TimePicker(

@@ -123,7 +123,7 @@ fun PastVisitCard(pastVisit: PastVisit) {
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray) // Gray background
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)) // Gray background
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

@@ -71,6 +71,9 @@ dependencies {
     implementation("com.google.android.gms:play-services-base:18.2.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.1.0")
 
+    implementation("io.coil-kt:coil-compose:2.2.2")
+
+
 }
 
 apply(plugin = "com.google.gms.google-services")

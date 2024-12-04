@@ -12,7 +12,8 @@ import com.lowjunee.healthsafe.data.FirestoreHelper
 fun ProfileScreen(
     firestoreHelper: FirestoreHelper,
     userId: String, // Pass the current user's ID
-    onLinkDataSuccess: () -> Unit // Callback when data linking succeeds
+    onLinkDataSuccess: () -> Unit, // Callback when data linking succeeds
+    onLogout: () -> Unit // Callback when the user logs out
 ) {
     var isLoading by remember { mutableStateOf(false) }
     var isLinked by remember { mutableStateOf(false) } // Tracks if data is linked
@@ -22,7 +23,7 @@ fun ProfileScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.SpaceBetween, // Space components evenly
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Profile Header
@@ -30,55 +31,72 @@ fun ProfileScreen(
             text = "Profile",
             style = MaterialTheme.typography.headlineMedium
         )
-        Spacer(modifier = Modifier.height(32.dp))
 
-        // "Link to Mobile Health Data" or "Mobile Health Data Already Linked" Button
-        Button(
-            onClick = {
-                if (!isLinked) { // Only execute if not already linked
-                    isLoading = true
-                    errorMessage = ""
+        Spacer(modifier = Modifier.weight(1f)) // Push buttons to the bottom
 
-
-                    firestoreHelper.insertDummyData(
-                        userId = userId,
-                        onSuccess = {
-                            isLoading = false
-                            isLinked = true // Set linked state to true
-                            onLinkDataSuccess()
-                        },
-                        onFailure = { error ->
-                            isLoading = false
-                            errorMessage = error
-                        }
-                    )
-
-                }
-            },
-            enabled = !isLoading && !isLinked, // Disable button if loading or already linked
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 64.dp), // Add bottom padding
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
+            // "Link to Mobile Health Data" or "Mobile Health Data Already Linked" Button
+            Button(
+                onClick = {
+                    if (!isLinked) { // Only execute if not already linked
+                        isLoading = true
+                        errorMessage = ""
+
+                        firestoreHelper.insertDummyData(
+                            userId = userId,
+                            onSuccess = {
+                                isLoading = false
+                                isLinked = true // Set linked state to true
+                                onLinkDataSuccess()
+                            },
+                            onFailure = { error ->
+                                isLoading = false
+                                errorMessage = error
+                            }
+                        )
+                    }
+                },
+                enabled = !isLoading && !isLinked, // Disable button if loading or already linked
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = if (isLinked) "Mobile Health Data Already Linked" else "Click to Insert Dummy Metrics Data"
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Display error message if operation fails
+            if (errorMessage.isNotEmpty()) {
                 Text(
-                    text = if (isLinked) "Mobile Health Data Already Linked" else "Click to Insert Dummy Data"
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Display error message if operation fails
-        if (errorMessage.isNotEmpty()) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            // Logout Button
+            Button(
+                onClick = { onLogout() },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text(text = "Logout", color = MaterialTheme.colorScheme.onError)
+            }
         }
     }
 }

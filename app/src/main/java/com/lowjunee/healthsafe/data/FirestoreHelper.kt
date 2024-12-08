@@ -524,13 +524,19 @@ class FirestoreHelper {
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId.isNullOrEmpty()) {
+            onFailure(Exception("User not logged in or user ID is null"))
+            return
+        }
+
         val appointment = mapOf(
             "reason" to reason,
             "name" to name,
             "clinic" to clinic,
             "time" to time.toString(),
             "date" to date.toString(),
-            "userId" to "user123", // Replace with the actual logged-in user ID
+            "userId" to userId, // Dynamically use the current user's ID
             "status" to "Pending" // Default status for the appointment
         )
 
@@ -543,6 +549,7 @@ class FirestoreHelper {
                 onFailure(e)
             }
     }
+
 
 
 }

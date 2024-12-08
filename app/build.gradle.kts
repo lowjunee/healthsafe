@@ -73,6 +73,9 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.2.2")
 
+    //qr generator
+    implementation("com.google.zxing:core:3.4.1")
+
 
 }
 

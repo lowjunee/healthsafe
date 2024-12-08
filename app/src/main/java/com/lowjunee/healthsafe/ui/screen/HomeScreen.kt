@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -82,23 +80,6 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Notifications Icon
-                IconButton(onClick = { onNavigate("notifications") }) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notifications",
-                        tint = PrimaryColor
-                    )
-                }
-
-                // Settings Icon
-                IconButton(onClick = { onNavigate("settings") }) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = PrimaryColor
-                    )
-                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lowjunee.healthsafe.ui.theme.PrimaryColor
 
@@ -27,17 +28,23 @@ fun MedicationsScreen(
 ) {
     var medications by remember { mutableStateOf(listOf<Map<String, Any>>()) }
     val firestore = FirebaseFirestore.getInstance()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     // Fetch medications from Firestore
     LaunchedEffect(Unit) {
-        firestore.collection("medications")
-            .get()
-            .addOnSuccessListener { result ->
-                medications = result.map { it.data }
-            }
-            .addOnFailureListener { e ->
-                println("Error fetching medications: ${e.message}")
-            }
+        if (userId.isNotEmpty()) {
+            firestore.collection("medications")
+                .whereEqualTo("userId", userId) // Filter by the current user's ID
+                .get()
+                .addOnSuccessListener { result ->
+                    medications = result.map { it.data }
+                }
+                .addOnFailureListener { e ->
+                    println("Error fetching medications: ${e.message}")
+                }
+        } else {
+            println("User ID is empty. Cannot fetch medications.")
+        }
     }
 
     Scaffold(

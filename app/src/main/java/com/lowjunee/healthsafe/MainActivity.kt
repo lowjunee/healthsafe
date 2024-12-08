@@ -51,6 +51,7 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
     LaunchedEffect(Unit) {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
+            userId = currentUser.uid
             firestoreHelper.getUserDetails(
                 onSuccess = { userDetails ->
                     userName = userDetails["name"] ?: "Guest"
@@ -136,6 +137,25 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                                 },
                                 onFailure = { e ->
                                     println("Error adding appointment: ${e.message}")
+                                }
+                            )
+                        }
+                    )
+                    "past_visits" -> PastVisitsScreen(
+                        onBackClick = { selectedScreen = "home" },
+                        onAddPastVisit = { selectedScreen = "add_past_visit" }
+                    )
+                    "add_past_visit" -> AddPastVisitsScreen(
+                        onBackClick = { selectedScreen = "past_visits" },
+                        onSaveClick = { pastVisit ->
+                            firestoreHelper.addPastVisit(
+                                pastVisit = pastVisit,
+                                onSuccess = {
+                                    println("Past visit added successfully!")
+                                    selectedScreen = "past_visits"
+                                },
+                                onFailure = { e ->
+                                    println("Error adding past visit: ${e.message}")
                                 }
                             )
                         }
@@ -274,6 +294,18 @@ fun HealthSafeApp(firestoreHelper: FirestoreHelper) {
                             selectedScreen = "home"
                             showLoginScreen = true
                         }
+                    )
+                    "tips" -> TipsScreen()
+                    "qr_release" -> QRScreen(
+                        onBackClick = { selectedScreen = "home" },  // Go back to home screen
+                        onGenerateQRClick = { includeHealthMetrics, includeMedications, includePastVisits ->
+                            // You can handle the data selection logic here before generating the QR
+                            // Pass the selected data flags to be encoded in the QR code
+                        },
+                        onNavigate = { selectedScreen = it }  // This handles the navigation
+                    )
+                    "qr_result_screen" -> QRResultScreen(
+                        onBackClick = { selectedScreen = "qr_release"}
                     )
                 }
             }
